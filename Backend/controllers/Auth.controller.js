@@ -52,13 +52,14 @@ export const Login = async (req, res, next) => {
         }, process.env.JWT_SECRET)
 
 
-        res.cookie("token", token, {
+        res.cookie("access_token", token, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: "/"
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000
         });
+
 
         const newUser = user.toObject({ getters: true })
         delete newUser.password
@@ -127,16 +128,15 @@ export const GoogleLogin = async (req, res, next) => {
 }
 
 
-
-
 export const Logout = async (req, res, next) => {
     try {
-        res.clearCookie("token", {   // ✅ MUST MATCH LOGIN COOKIE NAME
+        res.clearCookie("access_token", {
             httpOnly: true,
-            secure: true,              // ✅ REQUIRED on Vercel (HTTPS)
-            sameSite: "none",           // ✅ REQUIRED for cross-origin
+            secure: true,
+            sameSite: "none",
             path: "/"
         });
+
 
         res.status(200).json({
             success: true,
