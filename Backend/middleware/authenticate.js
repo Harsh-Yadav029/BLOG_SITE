@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 
 export const authenticate = (req, res, next) => {
   try {
-    const token = req.cookies.access_token; // ✅ MUST match login cookie
+    const token = req.cookies.token; // ✅ MUST match login cookie
 
     if (!token) {
       return res.status(401).json({

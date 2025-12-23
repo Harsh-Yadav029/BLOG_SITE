@@ -52,13 +52,14 @@ export const Login = async (req, res, next) => {
         }, process.env.JWT_SECRET)
 
 
-        res.cookie("access_token", token, {
+        res.cookie("token", jwtToken, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
             path: "/",
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
+
 
 
         const newUser = user.toObject({ getters: true })
@@ -130,12 +131,13 @@ export const GoogleLogin = async (req, res, next) => {
 
 export const Logout = async (req, res, next) => {
     try {
-        res.clearCookie("access_token", {
+        res.clearCookie("token", {
             httpOnly: true,
             secure: true,
             sameSite: "none",
             path: "/"
         });
+
 
 
         res.status(200).json({
