@@ -52,12 +52,13 @@ export const Login = async (req, res, next) => {
         }, process.env.JWT_SECRET)
 
 
-        res.cookie('access_token', token, {
+        res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-            path: '/'
-        })
+            secure: true,
+            sameSite: "none",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: "/"
+        });
 
         const newUser = user.toObject({ getters: true })
         delete newUser.password
@@ -73,56 +74,56 @@ export const Login = async (req, res, next) => {
 }
 
 export const GoogleLogin = async (req, res, next) => {
-  try {
-    const { name, email, avatar } = req.body
+    try {
+        const { name, email, avatar } = req.body
 
-    let user = await User.findOne({ email })
+        let user = await User.findOne({ email })
 
-    if (!user) {
-      const password = Math.random().toString()
-      const hashedPassword = bcryptjs.hashSync(password)
+        if (!user) {
+            const password = Math.random().toString()
+            const hashedPassword = bcryptjs.hashSync(password)
 
-      user = await User.create({
-        name,
-        email,
-        avatar,
-        password: hashedPassword,
-        role: 'user' // default role
-      })
+            user = await User.create({
+                name,
+                email,
+                avatar,
+                password: hashedPassword,
+                role: 'user' // default role
+            })
+        }
+
+        // 🔥 FIX 1: INCLUDE ROLE IN JWT
+        const token = jwt.sign(
+            {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+                role: user.role // 🔥 REQUIRED
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        )
+
+        // 🔥 FIX 2: COOKIE SETTINGS FOR LOCALHOST
+        res.cookie('access_token', token, {
+            httpOnly: true,
+            secure: false,   // localhost
+            sameSite: 'lax', // 🔥 IMPORTANT
+            path: '/'
+        })
+
+        const safeUser = user.toObject()
+        delete safeUser.password
+
+        res.status(200).json({
+            success: true,
+            user: safeUser,
+            message: 'Login successful.'
+        })
+    } catch (error) {
+        next(error)
     }
-
-    // 🔥 FIX 1: INCLUDE ROLE IN JWT
-    const token = jwt.sign(
-      {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role // 🔥 REQUIRED
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    )
-
-    // 🔥 FIX 2: COOKIE SETTINGS FOR LOCALHOST
-    res.cookie('access_token', token, {
-      httpOnly: true,
-      secure: false,   // localhost
-      sameSite: 'lax', // 🔥 IMPORTANT
-      path: '/'
-    })
-
-    const safeUser = user.toObject()
-    delete safeUser.password
-
-    res.status(200).json({
-      success: true,
-      user: safeUser,
-      message: 'Login successful.'
-    })
-  } catch (error) {
-    next(error)
-  }
 }
 
 
@@ -130,13 +131,12 @@ export const GoogleLogin = async (req, res, next) => {
 
 export const Logout = async (req, res, next) => {
     try {
-
-        res.clearCookie('access_token', {
+        res.clearCookie("token", {   // ✅ MUST MATCH LOGIN COOKIE NAME
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-            path: '/'
-        })
+            secure: true,              // ✅ REQUIRED on Vercel (HTTPS)
+            sameSite: "none",           // ✅ REQUIRED for cross-origin
+            path: "/"
+        });
 
         res.status(200).json({
             success: true,
