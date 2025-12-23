@@ -10,40 +10,35 @@ import BlogRoute from './routes/Blog.route.js'
 import CommentRouote from './routes/Comment.route.js'
 import BlogLikeRoute from './routes/Bloglike.route.js'
 
-dotenv.config()
+dotenv.config();
 
-const PORT = process.env.PORT
-const app = express()
+const app = express();
 
-app.use(cookieParser())
-app.use(express.json())
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://blog-site-ps2h.vercel.app/"
+    "http://localhost:5173",
+    "https://blog-site-ps2h.vercel.app"
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS not allowed"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.log("Blocked by CORS:", origin);
+            callback(new Error("CORS not allowed"));
+        }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  res.sendStatus(200);
-});
+app.options("*", cors());
+
+// ✅ AFTER CORS
+app.use(cookieParser());
+app.use(express.json());
+
 
 
 // route setup  
