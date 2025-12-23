@@ -26,10 +26,19 @@ import { RouteBlog } from '@/helpers/RouteName'
 const AddBlog = () => {
     const navigate = useNavigate()
     const user = useSelector((state) => state.user)
-    const { data: categoryData, loading, error } = useFetch(`${getEvn('VITE_API_BASE_URL')}/category/all-category`, {
-        method: 'get',
-        credentials: 'include'
-    })
+
+    /* ✅ FIX 1:
+       Backend routes are mounted with `/api`
+       OLD (WRONG): /category/all-category
+       NEW (CORRECT): /api/category/all-category
+    */
+    const { data: categoryData } = useFetch(
+        `${getEvn('VITE_API_BASE_URL')}/api/category/all-category`,
+        {
+            method: 'get',
+            credentials: 'include'
+        }
+    )
 
     const [filePreview, setPreview] = useState()
     const [file, setFile] = useState()
@@ -56,7 +65,6 @@ const AddBlog = () => {
         form.setValue('blogContent', data)
     }
 
-
     const blogTitle = form.watch('title')
 
     useEffect(() => {
@@ -67,31 +75,48 @@ const AddBlog = () => {
     }, [blogTitle])
 
     async function onSubmit(values) {
-
         try {
-            const newValues = { ...values, author: user.user._id }
-            if (!file) {
-                showToast('error', 'Feature image required.')
+            /* ✅ SAFETY CHECK */
+            if (!user?.user?._id) {
+                return showToast('error', 'You must be logged in.')
             }
+
+            if (!file) {
+                return showToast('error', 'Feature image required.')
+            }
+
+            const newValues = { ...values, author: user.user._id }
 
             const formData = new FormData()
             formData.append('file', file)
             formData.append('data', JSON.stringify(newValues))
 
-            const response = await fetch(`${getEvn('VITE_API_BASE_URL')}/blog/add`, {
-                method: 'post',
-                credentials: 'include',
-                body: formData
-            })
+            /* ✅ FIX 2:
+               OLD (WRONG): /blog/add
+               NEW (CORRECT): /api/blog/add
+            */
+            const response = await fetch(
+                `${getEvn('VITE_API_BASE_URL')}/api/blog/add`,
+                {
+                    method: 'post',
+                    credentials: 'include', // ✅ required for cookies
+                    body: formData            // ❌ do NOT set Content-Type manually
+                }
+            )
+
             const data = await response.json()
+
             if (!response.ok) {
                 return showToast('error', data.message)
             }
+
             form.reset()
-            setFile()
-            setPreview()
+            setFile(null)
+            setPreview(null)
+
             navigate(RouteBlog)
             showToast('success', data.message)
+
         } catch (error) {
             showToast('error', error.message)
         }
@@ -109,35 +134,42 @@ const AddBlog = () => {
             <Card className="pt-5">
                 <CardContent>
                     <h1 className='text-2xl font-bold mb-4'>Edit Blog</h1>
+
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)}  >
+                        <form onSubmit={form.handleSubmit(onSubmit)}>
+
+                            {/* CATEGORY */}
                             <div className='mb-3'>
                                 <FormField
                                     control={form.control}
                                     name="category"
                                     render={({ field }) => (
-
                                         <FormItem>
-
                                             <FormLabel>Category</FormLabel>
                                             <FormControl>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                    <SelectTrigger  >
+                                                <Select onValueChange={field.onChange}>
+                                                    <SelectTrigger>
                                                         <SelectValue placeholder="Select" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categoryData && categoryData.category.length > 0 &&
-                                                            categoryData.category.map(category => <SelectItem key={category._id} value={category._id}>{category.name}</SelectItem>)
-                                                        }
+                                                        {categoryData?.category?.map(category => (
+                                                            <SelectItem
+                                                                key={category._id}
+                                                                value={category._id}
+                                                            >
+                                                                {category.name}
+                                                            </SelectItem>
+                                                        ))}
                                                     </SelectContent>
                                                 </Select>
-
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                             </div>
+
+                            {/* TITLE */}
                             <div className='mb-3'>
                                 <FormField
                                     control={form.control}
@@ -153,6 +185,8 @@ const AddBlog = () => {
                                     )}
                                 />
                             </div>
+
+                            {/* SLUG */}
                             <div className='mb-3'>
                                 <FormField
                                     control={form.control}
@@ -168,6 +202,8 @@ const AddBlog = () => {
                                     )}
                                 />
                             </div>
+
+                            {/* IMAGE */}
                             <div className='mb-3'>
                                 <span className='mb-2 block'>Featured Image</span>
                                 <Dropzone onDrop={acceptedFiles => handleFileSelection(acceptedFiles)}>
@@ -175,18 +211,19 @@ const AddBlog = () => {
                                         <div {...getRootProps()}>
                                             <input {...getInputProps()} />
                                             <div className='flex justify-center items-center w-36 h-28 border-2 border-dashed rounded'>
-                                                <img src={filePreview} />
+                                                {filePreview && <img src={filePreview} />}
                                             </div>
                                         </div>
                                     )}
                                 </Dropzone>
                             </div>
-                            <div className='mb-3'>
 
+                            {/* CONTENT */}
+                            <div className='mb-3'>
                                 <FormField
                                     control={form.control}
                                     name="blogContent"
-                                    render={({ field }) => (
+                                    render={() => (
                                         <FormItem>
                                             <FormLabel>Blog Content</FormLabel>
                                             <FormControl>
@@ -196,15 +233,14 @@ const AddBlog = () => {
                                         </FormItem>
                                     )}
                                 />
-
                             </div>
+
                             <Button type="submit" className="w-full">Submit</Button>
                         </form>
                     </Form>
 
                 </CardContent>
             </Card>
-
         </div>
     )
 }
