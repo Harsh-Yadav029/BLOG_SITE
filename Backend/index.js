@@ -19,7 +19,7 @@ app.use(cookieParser())
 app.use(express.json())
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://blog-site-uypo.vercel.app"
+  "https://blog-site-ps2h.vercel.app/"
 ];
 
 app.use(cors({
