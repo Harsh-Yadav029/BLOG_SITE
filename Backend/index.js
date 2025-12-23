@@ -17,6 +17,7 @@ const app = express()
 
 app.use(cookieParser())
 app.use(express.json())
+
 const allowedOrigins = [
   "http://localhost:5173",
   "https://blog-site-ps2h.vercel.app"
@@ -35,15 +36,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", req.headers.origin);
-  res.header("Access-Control-Allow-Credentials", "true");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  res.sendStatus(200);
-});
 
 
 // route setup  
