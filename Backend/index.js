@@ -17,10 +17,26 @@ const app = express()
 
 app.use(cookieParser())
 app.use(express.json())
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://blog-site-e4m9.vercel.app"
+];
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true
-}))
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors());
+
 
 
 // route setup  
