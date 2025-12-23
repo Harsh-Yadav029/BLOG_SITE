@@ -1,6 +1,6 @@
 import multer from 'multer'
 
-const storage = multer.diskStorage({
+const storage = multer.memoryStorage({
     filename: function (req, file, cb) {
         cb(null, file.originalname)
     }
