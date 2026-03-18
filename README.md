@@ -2,8 +2,6 @@
 
 A full-stack blogging platform built with the **MERN stack**, enabling users to create, read, update, and delete blog posts with secure authentication and an interactive commenting system. Deployed live on Vercel.
 
-🔗 **[Live Demo](https://complete-spam-ham-prediction.onrender.com/)** &nbsp;|&nbsp; ⭐ **[GitHub Repository](https://github.com/Harsh-Yadav029/BLOG_SITE)**
-
 ---
 
 ## 🚀 Features
@@ -168,4 +166,4 @@ This project is open-source and available under the [MIT License](LICENSE).
 
 **Harsh Kumar Yadav**  
 📧 harshyadav2027@gmail.com  
-🔗 [LinkedIn](https://www.linkedin.com/in/) | [GitHub](https://github.com/Harsh-Yadav029) | [LeetCode](https://leetcode.com/)
+
